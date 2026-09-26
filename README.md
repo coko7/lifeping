@@ -13,6 +13,17 @@ colour-coded by freshness, with a short history.
 | 🟡 amber   | older than that, but younger than `LIFEPING_RED_AFTER` |
 | 🔴 red     | no sign of life for longer than `LIFEPING_RED_AFTER`   |
 
+## Table of contents
+
+- [Deploy with Docker](#deploy-with-docker)
+  - [Configuration](#configuration)
+- [Sending pings](#sending-pings)
+  - [From a computer (via bash script)](#from-a-computer-via-bash-script)
+    - [Hyprland keybind example](#hyprland-keybind-example)
+  - [From an Android phone (via HTTP Shortcuts app)](#from-an-android-phone-via-http-shortcuts-app)
+- [LifePing API](#lifeping-api)
+- [Development](#development)
+
 ## Deploy with Docker
 
 ```sh
