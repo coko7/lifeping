@@ -8,12 +8,12 @@ colour-coded by freshness, with a short history.
 
 | Status  | Meaning                                         |
 |---------|-------------------------------------------------|
-| grey    | no ping yet                                     |
-| green   | last ping younger than `LIFEPING_YELLOW_AFTER`  |
-| amber   | older than that, but younger than `LIFEPING_RED_AFTER` |
-| red     | no sign of life for longer than `LIFEPING_RED_AFTER`   |
+| ⚫ grey    | no ping yet                                     |
+| 🟢 green   | last ping younger than `LIFEPING_YELLOW_AFTER`  |
+| 🟡 amber   | older than that, but younger than `LIFEPING_RED_AFTER` |
+| 🔴 red     | no sign of life for longer than `LIFEPING_RED_AFTER`   |
 
-## Deploying
+## Deploy with Docker
 
 ```sh
 mkdir -p secrets
