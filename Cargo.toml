@@ -1,0 +1,28 @@
+[package]
+name = "lifeping"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+description = "A tiny self-hosted page telling friends and family whether its owner is alive"
+
+[dependencies]
+axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
+humantime = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+subtle = "2"
+time = { version = "0.3", features = ["formatting", "parsing", "macros", "serde"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "signal", "sync", "fs", "io-util"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[dev-dependencies]
+http-body-util = "0.1"
+tempfile = "3"
+tower = { version = "0.5", features = ["util"] }
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"

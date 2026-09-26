@@ -1,0 +1,9 @@
+target
+.git
+secrets
+scripts
+tests
+*.md
+compose.yaml
+Dockerfile
+.dockerignore

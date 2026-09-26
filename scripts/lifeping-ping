@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# Send a ping to lifeping and report the result with a desktop notification.
+#
+# Configuration:
+#   LIFEPING_URL  base URL of the server (default: https://lifeping.example.com)
+#   token file    ${XDG_CONFIG_HOME:-$HOME/.config}/lifeping/token
+set -o errexit -o nounset -o pipefail
+
+readonly url="${LIFEPING_URL:-https://lifeping.example.com}"
+readonly token_file="${XDG_CONFIG_HOME:-$HOME/.config}/lifeping/token"
+
+notify() {
+  local urgency="$1" message="$2"
+  if command -v notify-send >/dev/null 2>&1; then
+    notify-send --urgency="$urgency" --app-name=lifeping "lifeping" "$message"
+  else
+    printf 'lifeping: %s\n' "$message" >&2
+  fi
+}
+
+if [[ ! -r "$token_file" ]]; then
+  notify critical "Token file not found: $token_file"
+  exit 1
+fi
+
+# The header is fed through stdin (`--header @-`) so the token never shows
+# up in the process list.
+if response="$(curl --silent --show-error --fail --max-time 10 \
+      --request POST \
+      --header @- \
+      "$url/api/ping" 2>&1 <<<"Authorization: Bearer $(<"$token_file")")"; then
+  timestamp="$(sed --quiet --expression 's/.*"timestamp":"\([^"]*\)".*/\1/p' <<<"$response")"
+  if [[ -n "$timestamp" ]]; then
+    local_time="$(date --date="$timestamp" '+%Y-%m-%d %H:%M:%S' 2>/dev/null || printf '%s' "$timestamp")"
+    notify normal "Ping sent at $local_time"
+  else
+    notify normal "Ping sent: $response"
+  fi
+else
+  notify critical "Ping failed: $response"
+  exit 1
+fi
