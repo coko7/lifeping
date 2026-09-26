@@ -1,11 +1,10 @@
-# lifeping
+# 💓 LifePing
 
 A tiny self-hosted page that tells friends and family whether you're alive.
 
-You send a "ping" (a keybind on your PC, one tap on your phone), the server
+**You** send a "ping" (really just an HTTP request), the server
 records the time, and a public page shows how long ago the last ping was,
-colour-coded by freshness, with a short history. The page is in French or
-English and needs no login.
+colour-coded by freshness, with a short history.
 
 | Status  | Meaning                                         |
 |---------|-------------------------------------------------|
@@ -14,9 +13,6 @@ English and needs no login.
 | amber   | older than that, but younger than `LIFEPING_RED_AFTER` |
 | red     | no sign of life for longer than `LIFEPING_RED_AFTER`   |
 
-It's one Rust binary with the web UI built in, shipped as one Docker
-container with one volume.
-
 ## Deploying
 
 ```sh
@@ -24,10 +20,7 @@ mkdir -p secrets
 openssl rand -hex 32 > secrets/lifeping_token
 ```
 
-`secrets/` is already in `.gitignore`. Keep it out of git.
-
-Edit the lines marked `# CHANGE ME` in `compose.yaml` (host, Traefik
-entrypoint, cert resolver, external network name), then run:
+Edit the lines marked `# CHANGE ME` in `compose.yaml` then run:
 
 ```sh
 docker compose up --build -d
@@ -41,13 +34,12 @@ to `/data` instead, make it writable by that user:
 sudo chown 65532:65532 ./data
 ```
 
-Pings are stored in `/data/pings.log`, one UTC timestamp per line. They are
-kept forever; the file is plain text and safe to back up or read by hand.
+Pings are stored in `/data/pings.log`, one UTC timestamp per line.
 
 ### Configuration
 
 | Variable | Default | Description |
-|---|---|---|
+| --- | --- | --- |
 | `LIFEPING_TOKEN` | – | Bearer token for `POST /api/ping` |
 | `LIFEPING_TOKEN_FILE` | – | File containing the token (for Docker secrets). Set exactly one of the two token variables. |
 | `LIFEPING_YELLOW_AFTER` | `12h` | Age after which the status turns amber (`90m`, `12h`, `1d 6h`, …) |
@@ -57,33 +49,48 @@ kept forever; the file is plain text and safe to back up or read by hand.
 | `LIFEPING_BIND` | `0.0.0.0:8080` | Listen address |
 | `RUST_LOG` | `lifeping=info` | Log filter |
 
-The server won't start if the configuration is invalid, and the error names
-the variable at fault.
-
 ## Sending pings
 
-### PC (Hyprland keybind)
+Sending a ping is a simple as sending an HTTP POST request to the server:
+
+```sh
+curl --request POST --header "Authorization: Bearer $TOKEN" https://lifeping.example.com/api/ping
+# {"timestamp":"2026-09-27T09:30:00Z"}
+```
+
+This makes it easy to implement a ping send in pretty much any device you own.
+
+### From a computer (via bash script)
+
+There is already a default bash script provided in `scripts/lifeping-ping`.
+The script expects the `LIFEPING_URL` env var to be set and it will read the ping token from `~/.config/lifeping/token`. Feel free to adapt it to your specific needs.
+
+When ran, it will attempt to send a single ping to the server and notify you via `notify-send`.
+
+To easily install the script:
 
 ```sh
 install -D --mode=755 scripts/lifeping-ping ~/.local/bin/lifeping-ping
 install -D --mode=600 secrets/lifeping_token ~/.config/lifeping/token
 ```
 
-Set `LIFEPING_URL` to your server (for example in your Hyprland `env`
-settings), or edit the default in the script. Then add a keybind to
-`hyprland.conf`:
+#### Hyprland keybind example
 
+Since I use Hyprland, I have configured a keybind in my `hyprland.lua` to make it easy to send a ping:
+
+```lua
+hl.bind(
+ mainMod .. " + P",
+ hl.dsp.exec_cmd("bash ~/.local/bin/lifeping-ping"),
+ { description = "Send a ping to the LifePing server" }
+)
 ```
-bind = SUPER, P, exec, ~/.local/bin/lifeping-ping
-```
 
-The script shows a desktop notification with `notify-send`, telling you
-whether the ping worked. It needs `curl`.
+### From an Android phone (via HTTP Shortcuts app)
 
-### Phone (HTTP Shortcuts app)
+There is an open-source Android app called [HTTP Shortcuts](https://http-shortcuts.rmy.ch/) that you can use to easily create shortcuts/widgets that trigger an HTTP request.
 
-In the open-source [HTTP Shortcuts](https://http-shortcuts.rmy.ch/) app
-(available on F-Droid and in the GrapheneOS app store):
+Once installed, you can configure the app to work with LifePing:
 
 1. Create a new **Regular HTTP Shortcut**, named e.g. "I'm alive".
 2. **Basic request settings**: method `POST`, URL
@@ -93,23 +100,18 @@ In the open-source [HTTP Shortcuts](https://http-shortcuts.rmy.ch/) app
 5. Save, then long-press the shortcut → **Place on home screen**, or add an
    HTTP Shortcuts widget. One tap now sends a ping.
 
-### Anything else
-
-```sh
-curl --request POST --header "Authorization: Bearer $TOKEN" https://lifeping.example.com/api/ping
-# {"timestamp":"2026-09-27T09:30:00Z"}
-```
-
-## API
+## LifePing API
 
 | Endpoint | Auth | Description |
-|---|---|---|
+| --- | --- | --- |
 | `GET /api/status` | none | Current status, latest ping, recent history, thresholds |
 | `POST /api/ping` | `Bearer` | Records a ping at server time, returns `{"timestamp": …}` |
 | `GET /healthz` | none | Returns `ok` |
 
+To get latest pings:
+
 ```sh
-curl https://lifeping.example.com/api/status
+curl https://{lifeping.example.com}/api/status
 ```
 
 ```json
