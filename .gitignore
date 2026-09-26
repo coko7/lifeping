@@ -22,3 +22,6 @@ target
 
 # Deployment secrets (token for compose)
 secrets/
+
+# Local ping log from `cargo run`
+data/

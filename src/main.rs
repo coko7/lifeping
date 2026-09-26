@@ -33,10 +33,14 @@ fn serve() -> ExitCode {
         }
     };
     let bind = config.bind;
+    let data_dir = config.data_dir.clone();
     let state = match AppState::new(config) {
         Ok(state) => state,
         Err(e) => {
-            tracing::error!("cannot open ping log: {e}");
+            tracing::error!(
+                "cannot open ping log in {}: {e} (LIFEPING_DATA_DIR must be writable directory)",
+                data_dir.display()
+            );
             return ExitCode::FAILURE;
         }
     };
