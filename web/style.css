@@ -320,3 +320,18 @@ footer {
   font-size: 0.85rem;
   text-align: center;
 }
+
+footer .repo {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+
+footer #updated:not(:empty)::after {
+  content: " · ";
+}
+
+footer .repo:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
