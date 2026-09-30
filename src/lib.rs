@@ -20,7 +20,7 @@ pub use status::Status;
 pub use store::Store;
 
 const CONTENT_SECURITY_POLICY: &str = "default-src 'none'; script-src 'self'; style-src 'self'; \
-    img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; \
+    img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; \
     frame-ancestors 'none'";
 
 pub struct AppState {
@@ -46,6 +46,7 @@ pub fn build_app(state: Arc<AppState>) -> Router {
         .route("/", get(assets::index))
         .route("/app.js", get(assets::app_js))
         .route("/style.css", get(assets::style_css))
+        .route("/fonts/lifeping-title.woff2", get(assets::title_font))
         .route("/healthz", get(healthz))
         .nest("/api", api)
         .fallback(not_found)

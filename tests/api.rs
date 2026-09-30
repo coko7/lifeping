@@ -209,6 +209,7 @@ async fn static_assets() {
             "\"use strict\";",
         ),
         ("/style.css", "text/css; charset=utf-8", ":root"),
+        ("/fonts/lifeping-title.woff2", "font/woff2", "wOF2"),
     ];
     for (uri, content_type, prefix) in cases {
         let reply = send(&app, Method::GET, uri, None).await;
@@ -250,7 +251,7 @@ async fn security_headers_everywhere() {
         assert_eq!(
             reply.header(header::CONTENT_SECURITY_POLICY),
             "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; \
-             connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+             font-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
             "{uri}"
         );
         assert_eq!(

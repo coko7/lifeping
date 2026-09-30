@@ -57,7 +57,10 @@ lifeping/
 ├── web/
 │   ├── index.html
 │   ├── app.js
-│   └── style.css
+│   ├── style.css
+│   └── fonts/
+│       ├── lifeping-title.woff2
+│       └── OFL.txt
 ├── tests/
 │   └── api.rs         # integration tests against build_app()
 ├── scripts/
@@ -188,14 +191,14 @@ Returns `200 OK` with body `ok`. No auth, no dependency checks.
 
 ### 7.4 Static assets
 
-`GET /` serves `index.html`, `GET /app.js` serves the script, `GET /style.css` serves the stylesheet. All three are embedded at compile time with `include_str!` from `web/`. Serve them with correct `Content-Type` (including `charset=utf-8`) and `Cache-Control: no-cache`. Any other path returns 404.
+`GET /` serves `index.html`, `GET /app.js` serves the script, `GET /style.css` serves the stylesheet. `GET /fonts/lifeping-title.woff2` serves the title font (`font/woff2`). All are embedded at compile time with `include_str!`/`include_bytes!` from `web/`. Serve them with correct `Content-Type` (including `charset=utf-8`) and `Cache-Control: no-cache`. Any other path returns 404.
 
 ### 7.5 Security headers
 
 Apply to every response:
 
 ```
-Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
 X-Content-Type-Options: nosniff
 Referrer-Policy: no-referrer
 ```
