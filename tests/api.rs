@@ -21,6 +21,8 @@ fn config(data_dir: &Path, history: usize) -> Config {
         history,
         data_dir: data_dir.to_path_buf(),
         bind: "127.0.0.1:0".parse().unwrap(),
+        title: "LifePing".into(),
+        strings: lifeping::site::default_strings(),
     }
 }
 

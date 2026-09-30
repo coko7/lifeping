@@ -1,17 +1,19 @@
 # Title font
 
 `lifeping-title.woff2` is [Dancing Script](https://github.com/googlefonts/DancingScript)
-Bold, subset to the glyphs of "LifePing" (~2 KB). It is licensed under the SIL Open
+Bold, subset to Latin-1 plus common typographic punctuation (~25 KB), so any
+Western-European `LIFEPING_TITLE` renders in it. It is licensed under the SIL Open
 Font License 1.1 (`OFL.txt`). Because "Dancing Script" is a Reserved Font Name and
 subsetting counts as modification, the font is renamed "LifePing Title".
 
-To regenerate (e.g. after changing the title text), with `fonttools` and `brotli`:
+To regenerate, with `fonttools` and `brotli`:
 
 ```sh
 curl -Lo ds.ttf 'https://github.com/google/fonts/raw/main/ofl/dancingscript/DancingScript%5Bwght%5D.ttf'
 fonttools varLib.instancer ds.ttf wght=700 -o ds700.ttf
-pyftsubset ds700.ttf --text='LifePing' --layout-features='*' --flavor=woff2 \
-  --name-IDs='' --output-file=sub.woff2
+pyftsubset ds700.ttf --layout-features='*' \
+  --unicodes='U+0020-007E,U+00A0-00FF,U+0152-0153,U+0178,U+2013-2014,U+2018-201E,U+2026,U+20AC' \
+  --flavor=woff2 --name-IDs='' --output-file=sub.woff2
 python3 - <<'EOF'
 from fontTools.ttLib import TTFont, newTable
 f = TTFont("sub.woff2")

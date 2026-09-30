@@ -3,6 +3,7 @@
 pub mod api;
 pub mod assets;
 pub mod config;
+pub mod site;
 pub mod status;
 pub mod store;
 
@@ -26,13 +27,20 @@ const CONTENT_SECURITY_POLICY: &str = "default-src 'none'; script-src 'self'; st
 pub struct AppState {
     pub config: Config,
     pub store: Store,
+    /// `web/index.html` with the configured title and strings filled in.
+    pub index_html: String,
 }
 
 impl AppState {
     /// Opens the store in the configured data directory.
     pub fn new(config: Config) -> io::Result<Arc<Self>> {
         let store = Store::open(&config.data_dir)?;
-        Ok(Arc::new(Self { config, store }))
+        let index_html = site::render_index(&config.title, &config.strings);
+        Ok(Arc::new(Self {
+            config,
+            store,
+            index_html,
+        }))
     }
 }
 

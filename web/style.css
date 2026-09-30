@@ -89,7 +89,7 @@ button:focus-visible {
   padding: 12px 16px 0;
 }
 
-/* Subset to the glyphs of "LifePing" only; any other text falls back. */
+/* Subset to Latin-1; characters outside it fall back. */
 @font-face {
   font-family: "LifePing Title";
   src: url("/fonts/lifeping-title.woff2") format("woff2");

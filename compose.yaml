@@ -9,6 +9,8 @@ services:
       LIFEPING_YELLOW_AFTER: 12h
       LIFEPING_RED_AFTER: 24h
       LIFEPING_HISTORY: "10"
+      # LIFEPING_TITLE: Life Ping
+      # LIFEPING_STRINGS_FILE: /config/strings.json   # plus a volume ./strings.json:/config/strings.json:ro
     secrets:
       - lifeping_token
     volumes:

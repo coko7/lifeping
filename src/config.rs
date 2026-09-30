@@ -6,10 +6,13 @@ use std::path::PathBuf;
 
 use time::Duration;
 
+use crate::site::{self, Strings};
+
 pub const DEFAULT_BIND: &str = "0.0.0.0:8080";
 
 const MIN_RECOMMENDED_TOKEN_LEN: usize = 32;
 const MAX_HISTORY: usize = 1000;
+const MAX_TITLE_LEN: usize = 100;
 
 #[derive(Clone)]
 pub struct Config {
@@ -19,6 +22,8 @@ pub struct Config {
     pub history: usize,
     pub data_dir: PathBuf,
     pub bind: SocketAddr,
+    pub title: String,
+    pub strings: Strings,
 }
 
 // Hand-written so the token can never end up in logs through `{:?}`.
@@ -31,7 +36,8 @@ impl fmt::Debug for Config {
             .field("history", &self.history)
             .field("data_dir", &self.data_dir)
             .field("bind", &self.bind)
-            .finish()
+            .field("title", &self.title)
+            .finish_non_exhaustive()
     }
 }
 
@@ -98,6 +104,8 @@ impl Config {
 
         let data_dir = PathBuf::from(get("LIFEPING_DATA_DIR").unwrap_or_else(|| "/data".into()));
         let bind = parse_bind(get("LIFEPING_BIND"))?;
+        let title = parse_title(get("LIFEPING_TITLE"))?;
+        let strings = parse_strings(get("LIFEPING_STRINGS_FILE"))?;
 
         Ok(Self {
             token,
@@ -106,6 +114,8 @@ impl Config {
             history,
             data_dir,
             bind,
+            title,
+            strings,
         })
     }
 }
@@ -152,6 +162,37 @@ fn parse_token(get: &impl Fn(&str) -> Option<String>) -> Result<String, ConfigEr
         }
         (token, _) => Ok(token),
     }
+}
+
+fn parse_title(raw: Option<String>) -> Result<String, ConfigError> {
+    let Some(raw) = raw else {
+        return Ok(site::DEFAULT_TITLE.into());
+    };
+    let title = raw.trim();
+    if title.is_empty() {
+        return Err(ConfigError::new("LIFEPING_TITLE", "must not be empty"));
+    }
+    if title.chars().count() > MAX_TITLE_LEN {
+        return Err(ConfigError::new(
+            "LIFEPING_TITLE",
+            format!("must be at most {MAX_TITLE_LEN} characters"),
+        ));
+    }
+    Ok(title.into())
+}
+
+fn parse_strings(path: Option<String>) -> Result<Strings, ConfigError> {
+    let Some(path) = path else {
+        return Ok(site::default_strings());
+    };
+    let contents = std::fs::read_to_string(&path).map_err(|e| {
+        ConfigError::new(
+            "LIFEPING_STRINGS_FILE",
+            format!("cannot read strings file {path:?}: {e}"),
+        )
+    })?;
+    site::merge_overrides(&contents)
+        .map_err(|e| ConfigError::new("LIFEPING_STRINGS_FILE", format!("{path:?}: {e}")))
 }
 
 fn parse_duration(
@@ -204,6 +245,8 @@ mod tests {
         assert_eq!(config.history, 10);
         assert_eq!(config.data_dir, PathBuf::from("/data"));
         assert_eq!(config.bind, "0.0.0.0:8080".parse().unwrap());
+        assert_eq!(config.title, "Life Ping");
+        assert_eq!(config.strings, site::default_strings());
     }
 
     #[test]
@@ -222,6 +265,46 @@ mod tests {
         assert_eq!(config.history, 1000);
         assert_eq!(config.data_dir, PathBuf::from("/tmp/lp"));
         assert_eq!(config.bind, "127.0.0.1:9000".parse().unwrap());
+    }
+
+    #[test]
+    fn custom_title_is_trimmed() {
+        let config = load(&[
+            ("LIFEPING_TOKEN", TOKEN),
+            ("LIFEPING_TITLE", "  Coko's pulse "),
+        ])
+        .unwrap();
+        assert_eq!(config.title, "Coko's pulse");
+    }
+
+    #[test]
+    fn bad_titles() {
+        let long = "x".repeat(MAX_TITLE_LEN + 1);
+        for bad in ["", "   ", &long] {
+            let vars = [("LIFEPING_TOKEN", TOKEN), ("LIFEPING_TITLE", bad)];
+            assert_eq!(err_var(&vars), "LIFEPING_TITLE", "value {bad:?}");
+        }
+    }
+
+    #[test]
+    fn strings_file_overrides_defaults() {
+        let mut file = tempfile::NamedTempFile::new().unwrap();
+        write!(file, r#"{{"en": {{"headline.green": "Still kicking"}}}}"#).unwrap();
+        let path = file.path().to_str().unwrap();
+        let config = load(&[("LIFEPING_TOKEN", TOKEN), ("LIFEPING_STRINGS_FILE", path)]).unwrap();
+        assert_eq!(config.strings["en"]["headline.green"], "Still kicking");
+        assert_eq!(config.strings["fr"], site::default_strings()["fr"]);
+    }
+
+    #[test]
+    fn bad_strings_files() {
+        let mut file = tempfile::NamedTempFile::new().unwrap();
+        write!(file, r#"{{"en": {{"no.such.key": "x"}}}}"#).unwrap();
+        let invalid = file.path().to_str().unwrap();
+        for path in [invalid, "/nonexistent/lifeping/strings.json"] {
+            let vars = [("LIFEPING_TOKEN", TOKEN), ("LIFEPING_STRINGS_FILE", path)];
+            assert_eq!(err_var(&vars), "LIFEPING_STRINGS_FILE", "path {path:?}");
+        }
     }
 
     #[test]

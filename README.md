@@ -13,6 +13,7 @@ A tiny self-hosted page that tells friends and family whether you're alive.
 - [What's the idea?](#whats-the-idea)
 - [Deploy with Docker](#deploy-with-docker)
   - [Configuration](#configuration)
+  - [Customising the text](#customising-the-text)
 - [Sending pings](#sending-pings)
   - [From a computer (via bash script)](#from-a-computer-via-bash-script)
     - [Hyprland keybind example](#hyprland-keybind-example)
@@ -70,7 +71,29 @@ Pings are stored in `/data/pings.log`, one UTC timestamp per line.
 | `LIFEPING_HISTORY` | `10` | How many recent pings the page shows (1–1000) |
 | `LIFEPING_DATA_DIR` | `/data` | Directory holding `pings.log` |
 | `LIFEPING_BIND` | `0.0.0.0:8080` | Listen address |
+| `LIFEPING_TITLE` | `Life Ping` | Site title shown in the header and browser tab (max 100 characters) |
+| `LIFEPING_STRINGS_FILE` | – | JSON file overriding UI strings, see [Customising the text](#customising-the-text) |
 | `RUST_LOG` | `lifeping=info` | Log filter |
+
+### Customising the text
+
+You can use a custom page title by setting `LIFEPING_TITLE`.
+
+Every other piece of text on the page can be changed by pointing `LIFEPING_STRINGS_FILE` at a JSON file with the
+same structure as [`web/strings.json`](web/strings.json).
+You only need to list the strings you want to change; the rest keep their defaults:
+
+```json
+{
+  "en": { "headline.green": "Still kicking!" },
+  "fr": { "headline.green": "Toujours là !" }
+}
+```
+
+`{hours}` and `{relative}` placeholders are dynamically replaced on page load with their real values.
+
+If using custom text translations with Docker, you will need to make sure the file is mounted into the container, e.g. `./strings.json:/config/strings.json:ro`,
+and set `LIFEPING_STRINGS_FILE: /config/strings.json`.
 
 ## Sending pings
 

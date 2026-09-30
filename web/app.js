@@ -1,32 +1,11 @@
 "use strict";
 
 (() => {
-  const STRINGS = {
-    en: {
-      "headline.loading": "Loading…",
-      "headline.green": "Alive and well",
-      "headline.yellow": "Probably fine, quiet for a while",
-      "headline.red": "No sign of life for over {hours} hours",
-      "headline.unknown": "No ping yet",
-      lastSeen: "Last seen {relative}",
-      "history.title": "Recent pings",
-      "history.empty": "Nothing here yet",
-      "footer.updated": "Updated {relative}",
-      "error.unreachable": "Can't reach the server, retrying…",
-    },
-    fr: {
-      "headline.loading": "Chargement…",
-      "headline.green": "En vie et en forme",
-      "headline.yellow": "Sûrement rien de grave, pas de nouvelles depuis un moment",
-      "headline.red": "Aucun signe de vie depuis plus de {hours} heures",
-      "headline.unknown": "Aucun ping pour l'instant",
-      lastSeen: "Vu pour la dernière fois {relative}",
-      "history.title": "Pings récents",
-      "history.empty": "Rien pour l'instant",
-      "footer.updated": "Mis à jour {relative}",
-      "error.unreachable": "Serveur injoignable, nouvel essai…",
-    },
-  };
+  // Title and strings are rendered into the page by the server
+  // (defaults in web/strings.json, overridable via LIFEPING_STRINGS_FILE).
+  const { title: SITE_TITLE, strings: STRINGS } = JSON.parse(
+    document.getElementById("site-config").textContent,
+  );
 
   const LANGS = ["en", "fr"];
   const STORAGE_KEY = "lifeping.lang";
@@ -177,7 +156,7 @@
       setText(el.lastSeenExact, "");
     }
 
-    const title = `${TITLE_EMOJI[status]} lifeping`;
+    const title = `${TITLE_EMOJI[status]} ${SITE_TITLE}`;
     if (document.title !== title) document.title = title;
     const icon = faviconUrl(FAVICON_COLOR[status]);
     if (el.favicon.getAttribute("href") !== icon) el.favicon.setAttribute("href", icon);

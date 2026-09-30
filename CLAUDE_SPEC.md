@@ -55,7 +55,8 @@ lifeping/
 │   ├── api.rs         # /api/* handlers
 │   └── assets.rs      # embedded frontend files + handlers
 ├── web/
-│   ├── index.html
+│   ├── index.html     # template: {{title}} and {{config}} filled in at startup
+│   ├── strings.json   # default UI strings (en, fr)
 │   ├── app.js
 │   ├── style.css
 │   └── fonts/
@@ -122,6 +123,8 @@ All configuration comes from environment variables. Invalid configuration must f
 | `LIFEPING_HISTORY` | no | `10` | Number of most recent pings returned for the UI, 1 to 1000 |
 | `LIFEPING_DATA_DIR` | no | `/data` | Directory containing `pings.log` |
 | `LIFEPING_BIND` | no | `0.0.0.0:8080` | Listen address |
+| `LIFEPING_TITLE` | no | `Life Ping` | Site title in the header and browser tab; trimmed, 1 to 100 characters |
+| `LIFEPING_STRINGS_FILE` | no | none | JSON file overriding any subset of `web/strings.json`; unknown languages or keys are rejected |
 | `RUST_LOG` | no | `lifeping=info` | Log filter |
 
 Validation rules: exactly one of `LIFEPING_TOKEN` / `LIFEPING_TOKEN_FILE` must be set and the resulting token must be non-empty; log a `warn` (not an error) if it is shorter than 32 characters. `LIFEPING_RED_AFTER` must be strictly greater than `LIFEPING_YELLOW_AFTER`, and both must be greater than zero. The token must never be logged.
@@ -191,7 +194,7 @@ Returns `200 OK` with body `ok`. No auth, no dependency checks.
 
 ### 7.4 Static assets
 
-`GET /` serves `index.html`, `GET /app.js` serves the script, `GET /style.css` serves the stylesheet. `GET /fonts/lifeping-title.woff2` serves the title font (`font/woff2`). All are embedded at compile time with `include_str!`/`include_bytes!` from `web/`. Serve them with correct `Content-Type` (including `charset=utf-8`) and `Cache-Control: no-cache`. Any other path returns 404.
+`GET /` serves `index.html`, `GET /app.js` serves the script, `GET /style.css` serves the stylesheet. `GET /fonts/lifeping-title.woff2` serves the title font (`font/woff2`). All are embedded at compile time with `include_str!`/`include_bytes!` from `web/`. `index.html` is rendered once at startup: `{{title}}` becomes the HTML-escaped `LIFEPING_TITLE`, and `{{config}}` becomes a JSON object `{title, strings}` inside `<script id="site-config" type="application/json">` (with `<` escaped as `\u003c`), which `app.js` reads. Serve them with correct `Content-Type` (including `charset=utf-8`) and `Cache-Control: no-cache`. Any other path returns 404.
 
 ### 7.5 Security headers
 
@@ -246,7 +249,7 @@ Supported languages are French and English. On first visit, walk `navigator.lang
 
 Relative times use `Intl.RelativeTimeFormat` with `numeric: "auto"` in the active language, choosing the largest sensible unit (seconds under a minute, minutes under an hour, hours under two days, days beyond). Absolute times use `Intl.DateTimeFormat` with `dateStyle: "medium"` and `timeStyle: "short"` in the viewer's local timezone.
 
-All UI strings live in one dictionary object in `app.js`. Threshold hours in messages are derived from the API thresholds, not hard-coded. Initial strings:
+Default UI strings live in `web/strings.json`; `LIFEPING_STRINGS_FILE` can override any subset of them (unknown languages or keys are a startup error). Threshold hours in messages are derived from the API thresholds, not hard-coded. Initial strings:
 
 | Key | English | French |
 |---|---|---|
