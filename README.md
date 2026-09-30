@@ -1,6 +1,26 @@
+<div align="center">
+
 # 💓 LifePing
 
 A tiny self-hosted page that tells friends and family whether you're alive.
+
+<img src="assets/lifeping_screenshot.png" alt="LifePing website UI screenshot" height="600">
+
+</div>
+
+## Table of contents
+
+- [What's the idea?](#what's-the-idea?)
+- [Deploy with Docker](#deploy-with-docker)
+  - [Configuration](#configuration)
+- [Sending pings](#sending-pings)
+  - [From a computer (via bash script)](#from-a-computer-via-bash-script)
+    - [Hyprland keybind example](#hyprland-keybind-example)
+  - [From an Android phone (via HTTP Shortcuts app)](#from-an-android-phone-via-http-shortcuts-app)
+- [LifePing API](#lifeping-api)
+- [Development](#development)
+
+## What's the idea?
 
 **You** send a "ping" (really just an HTTP request), the server
 records the time, and a public page shows how long ago the last ping was,
@@ -12,17 +32,6 @@ colour-coded by freshness, with a short history.
 | 🟢 green   | last ping younger than `LIFEPING_YELLOW_AFTER`  |
 | 🟡 amber   | older than that, but younger than `LIFEPING_RED_AFTER` |
 | 🔴 red     | no sign of life for longer than `LIFEPING_RED_AFTER`   |
-
-## Table of contents
-
-- [Deploy with Docker](#deploy-with-docker)
-  - [Configuration](#configuration)
-- [Sending pings](#sending-pings)
-  - [From a computer (via bash script)](#from-a-computer-via-bash-script)
-    - [Hyprland keybind example](#hyprland-keybind-example)
-  - [From an Android phone (via HTTP Shortcuts app)](#from-an-android-phone-via-http-shortcuts-app)
-- [LifePing API](#lifeping-api)
-- [Development](#development)
 
 ## Deploy with Docker
 
