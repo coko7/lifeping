@@ -2,15 +2,15 @@
 
 # 💓 LifePing
 
-A tiny self-hosted page that tells friends and family whether you're alive.
-
 <img src="assets/lifeping_screenshot.png" alt="LifePing website UI screenshot" height="600">
+
+A tiny self-hosted page that tells friends and family whether you're alive.
 
 </div>
 
 ## Table of contents
 
-- [What's the idea?](#what's-the-idea?)
+- [What's the idea?](#whats-the-idea)
 - [Deploy with Docker](#deploy-with-docker)
   - [Configuration](#configuration)
 - [Sending pings](#sending-pings)
@@ -22,13 +22,16 @@ A tiny self-hosted page that tells friends and family whether you're alive.
 
 ## What's the idea?
 
-**You** send a "ping" (really just an HTTP request), the server
-records the time, and a public page shows how long ago the last ping was,
-colour-coded by freshness, with a short history.
+Basically, every now and then, **YOU** send a `ping` *(really just an HTTP request)* to the LifePing server.
+The server then stores the associated request timestamp in a simple text file.
+Whenever someone visits the hosted web page, they can see how long ago the last ping was.
+It also includes the times for the last 10 pings and that's it.
+
+Depending on how much time has passed since the latest ping, it will display a different status message:
 
 | Status  | Meaning                                         |
 |---------|-------------------------------------------------|
-| ⚫ grey    | no ping yet                                     |
+| ⚫ grey    | no ping recorded yet                                     |
 | 🟢 green   | last ping younger than `LIFEPING_YELLOW_AFTER`  |
 | 🟡 amber   | older than that, but younger than `LIFEPING_RED_AFTER` |
 | 🔴 red     | no sign of life for longer than `LIFEPING_RED_AFTER`   |
